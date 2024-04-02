@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      (function () {
+        var webSdkScript = document.createElement("script");
+
+        webSdkScript.src =
+          "https://unpkg.com/@grafana/faro-web-sdk@^1.4.0/dist/bundle/faro-web-sdk.iife.js";
+
+        webSdkScript.onload = () => {
+          window.GrafanaFaroWebSdk.initializeFaro({
+            url: "",
+            app: {
+              name: "my-electron-app",
+              version: "1.0.0",
+              environment: "production",
+            },
+            
+          });
+
+
+          // Load instrumentations at the onLoad event of the web-SDK and after the above configuration.
+          // This is important because we need to ensure that the Web-SDK has been loaded and initialized before we add further instruments!
+          var webTracingScript = document.createElement("script");
+
+          webTracingScript.src =
+            "https://unpkg.com/@grafana/faro-web-tracing@^1.4.0/dist/bundle/faro-web-tracing.iife.js";
+
+          // Initialize, configure (if necessary) and add the the new instrumentation to the already loaded and configured Web-SDK.
+          webTracingScript.onload = () => {
+            window.GrafanaFaroWebSdk.faro.instrumentations.add(
+              new window.GrafanaFaroWebTracing.TracingInstrumentation()
+            );
+          };
+
+          // Append the Web Tracing script script tag to the HTML page
+          document.head.appendChild(webTracingScript);
+        };
+
+        // Append the Web-SDK script script tag to the HTML page
+        document.head.appendChild(webSdkScript);
+      })();
+    </script>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com/@grafana/faro-web-sdk"> -->
+    <title>Hello World!</title>
+  </head>
+  <body>
+    <h1>Hello World!</h1>
+    We are using Node.js <span id="node-version"></span>,
+    Chromium <span id="chrome-version"></span>,
+    and Electron <span id="electron-version"></span>.
+    <p><a href="test.html">test</a></p>
+    <script src="./renderer.js"></script>
+    <script>
+      const error = new Error('Oops from index');
+      window.GrafanaFaroWebSdk.faro.api.pushError(error);
+    </script>
+  </body>
+</html>
